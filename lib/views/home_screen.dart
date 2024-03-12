@@ -81,52 +81,49 @@ class _HomeScreenState extends State<HomeScreen> {
                 crossAxisCount: 2, childAspectRatio: 0.85, mainAxisSpacing: 20),
             builderDelegate: PagedChildBuilderDelegate(
               itemBuilder: (context, item, index) {
-                return Container(
-                  margin: const EdgeInsets.only(left: 20.0),
-                  child: Column(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: ProductCardImage(
-                          imageURL: item.image ??
-                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYZkVHaCkd6Opc6l1aunktO2Y_ILQyPND4JwCnwWVP4w&s',
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(context, kProductDetailsScreen);
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.only(left: 20.0),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: ProductCardImage(
+                            imageURL: item.image ??
+                                'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYZkVHaCkd6Opc6l1aunktO2Y_ILQyPND4JwCnwWVP4w&s',
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 12.0, left: 12),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 5,
-                                child: Text(
-                                  '${item.name} - ${item.brand!.name}',
-                                  maxLines: 2,
-                                  style: GoogleFonts.roboto(
-                                    fontSize: 13.0,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.white,
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 12.0, left: 12),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  flex: 5,
+                                  child: Text(
+                                    '${item.name} - ${item.brand!.name}',
+                                    maxLines: 2,
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 13.0,
+                                      fontWeight: FontWeight.w900,
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Padding(
+                                Expanded(
+                                  flex: 2,
+                                  child: Padding(
                                     padding: const EdgeInsets.only(right: 8.0),
                                     child: CachedNetworkImage(
                                       imageUrl: item.brand!.logo!,
                                       imageBuilder: (context, imageProvider) {
-                                        return Container(
-                                          decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                                color: Colors.transparent,
-                                                width: 2),
-                                            image: DecorationImage(
-                                              image: imageProvider,
-                                              fit: BoxFit.fill,
-                                            ),
-                                          ),
+                                        return CircleAvatar(
+                                          backgroundImage: imageProvider,
+                                          backgroundColor: Colors.black,
+                                          radius: 20,
                                         );
                                       },
                                       progressIndicatorBuilder:
@@ -135,63 +132,67 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: Colors.white,
                                         );
                                       },
+                                      errorListener: (value) {},
                                       errorWidget: (context, url, error) {
                                         return const CircleAvatar(
                                           backgroundColor: Colors.black,
-                                          backgroundImage: AssetImage(
+                                          foregroundImage: AssetImage(
                                             kBrandLogo,
                                           ),
                                         );
                                       },
                                       width: 30,
                                       height: 30,
-                                    )),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12.0),
+                                child: Text(
+                                  'EGP ${item.price!.numeral()}',
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              LikeButton(
+                                size: 26,
+                                likeBuilder: (bool isLiked) {
+                                  //TODO: Implement the like logic
+                                  return Icon(
+                                    isLiked
+                                        ? Icons.favorite
+                                        : Icons.favorite_outline,
+                                    color: isLiked ? Colors.red : Colors.white,
+                                  );
+                                },
+                              ),
+                              LikeButton(
+                                size: 26,
+                                likeBuilder: (bool isLiked) {
+                                  //TODO: Implement the add to cart logic
+                                  return Icon(
+                                    Icons.shopping_cart,
+                                    color:
+                                        isLiked ? Colors.green : Colors.white,
+                                  );
+                                },
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 12.0),
-                              child: Text(
-                                'EGP ${item.price!.numeral()}',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 12.0,
-                                  fontWeight: FontWeight.w900,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                            const Spacer(),
-                            LikeButton(
-                              size: 26,
-                              likeBuilder: (bool isLiked) {
-                                //TODO: Implement the like logic
-                                return Icon(
-                                  isLiked
-                                      ? Icons.favorite
-                                      : Icons.favorite_outline,
-                                  color: isLiked ? Colors.red : Colors.white,
-                                );
-                              },
-                            ),
-                            LikeButton(
-                              size: 26,
-                              likeBuilder: (bool isLiked) {
-                                //TODO: Implement the add to cart logic
-                                return Icon(
-                                  Icons.shopping_cart,
-                                  color: isLiked ? Colors.green : Colors.white,
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
@@ -220,6 +221,13 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _pagingController.dispose();
+  }
 }
 
 class ProductCardImage extends StatelessWidget {
@@ -230,33 +238,15 @@ class ProductCardImage extends StatelessWidget {
   final String imageURL;
   @override
   Widget build(BuildContext context) {
-    return CachedNetworkImage(
-      width: MediaQuery.of(context).size.height / 6,
-      imageUrl: imageURL,
-      imageBuilder: (context, imageProvider) => Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.transparent, width: 2),
-          borderRadius: BorderRadius.circular(20),
-          image: DecorationImage(
-            image: imageProvider,
-            fit: BoxFit.fill,
-          ),
-        ),
-      ),
-      progressIndicatorBuilder: (context, url, downloadProgress) =>
-          const SpinKitFadingFour(
-        color: Colors.white,
-      ),
-      errorWidget: (context, url, error) => Container(
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.transparent, width: 2),
-          borderRadius: BorderRadius.circular(20),
-          image: const DecorationImage(
-            image: AssetImage(
-              kBrandLogo,
-            ),
-            fit: BoxFit.fill,
-          ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: CachedNetworkImage(
+        width: MediaQuery.of(context).size.width / 3,
+        imageUrl: imageURL,
+        fit: BoxFit.cover,
+        progressIndicatorBuilder: (context, url, downloadProgress) =>
+            const SpinKitFadingFour(
+          color: Colors.white,
         ),
       ),
     );
