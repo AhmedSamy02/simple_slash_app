@@ -1,13 +1,52 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
+import 'package:like_button/like_button.dart';
 import 'package:numeral/numeral.dart';
+import 'package:simple_slash_app/constants.dart';
+import 'package:simple_slash_app/models/product.dart';
+import 'package:simple_slash_app/services/get_all_products.dart';
+import 'package:simple_slash_app/utils/check_mark_indicator.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  static const _pageSize = 11;
+
+  final PagingController<int, Product> _pagingController =
+      PagingController(firstPageKey: 0);
+
+  @override
+  void initState() {
+    _pagingController.addPageRequestListener((pageKey) {
+      _fetchPage(pageKey);
+    });
+    super.initState();
+  }
+
+  bool loadingStart = false;
+  Future<void> _fetchPage(int pageKey) async {
+    try {
+      final newItems = await GetAllProducts.getProducts(_pageSize, pageKey);
+      final isLastPage = newItems.length < _pageSize;
+      if (isLastPage) {
+        _pagingController.appendLastPage(newItems);
+      } else {
+        final nextPageKey = pageKey + newItems.length;
+        _pagingController.appendPage(newItems, nextPageKey);
+      }
+    } catch (error) {
+      _pagingController.error = error;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,76 +66,156 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.only(top: 8.0),
-        child: GridView.builder(
-          itemCount: 20,
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2, childAspectRatio: 0.85, mainAxisSpacing: 20),
-          itemBuilder: (context, index) {
-            return Container(
-              margin: const EdgeInsets.only(left: 20.0),
-              color: Colors.black,
-              child: Column(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: ProductCardImage(
-                      imageURL:
-                          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYZkVHaCkd6Opc6l1aunktO2Y_ILQyPND4JwCnwWVP4w&s',
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 12.0, left: 12),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              'Product Name - Addidas',
-                              maxLines: 2,
-                              style: GoogleFonts.roboto(
-                                fontSize: 12.0,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: CircleAvatar(
-                              radius: 15,
-                              backgroundImage: CachedNetworkImageProvider(
-                                  "http://via.placeholder.com/350x150"),
-                              backgroundColor: Colors.black,
-                            ),
-                          ),
-                        ],
+        child: CustomRefreshIndicator(
+          onRefresh: () {
+            return Future(() async {
+              _pagingController.refresh();
+            });
+          },
+          builder: (context, child, controller) {
+            return CheckMarkIndicator(child: child);
+          },
+          child: PagedGridView<int, Product>(
+            pagingController: _pagingController,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2, childAspectRatio: 0.85, mainAxisSpacing: 20),
+            builderDelegate: PagedChildBuilderDelegate(
+              itemBuilder: (context, item, index) {
+                return Container(
+                  margin: const EdgeInsets.only(left: 20.0),
+                  child: Column(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: ProductCardImage(
+                          imageURL: item.image ??
+                              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYZkVHaCkd6Opc6l1aunktO2Y_ILQyPND4JwCnwWVP4w&s',
+                        ),
                       ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0),
-                          child: Text(
-                            'EGP ' + 1000.numeral(),
-                            style: GoogleFonts.roboto(
-                              fontSize: 12.0,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white,
-                            ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 12.0, left: 12),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: Text(
+                                  '${item.brand!.name} - ${item.name}',
+                                  maxLines: 2,
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 12.0,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: CachedNetworkImage(
+                                      imageUrl: item.brand!.logo!,
+                                      imageBuilder: (context, imageProvider) {
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                                color: Colors.transparent,
+                                                width: 2),
+                                            image: DecorationImage(
+                                              image: imageProvider,
+                                              fit: BoxFit.fill,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      progressIndicatorBuilder:
+                                          (context, url, progress) {
+                                        return const SpinKitFadingFour(
+                                          color: Colors.white,
+                                        );
+                                      },
+                                      errorWidget: (context, url, error) {
+                                        return const CircleAvatar(
+                                          backgroundColor: Colors.black,
+                                          backgroundImage: AssetImage(
+                                            kBrandLogo,
+                                          ),
+                                        );
+                                      },
+                                      width: 30,
+                                      height: 30,
+                                    )),
+                              ),
+                            ],
                           ),
                         ),
-                        const Spacer(),
-                        
-                      ],
+                      ),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.only(left: 12.0),
+                              child: Text(
+                                'EGP ${item.price!.numeral()}',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 12.0,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            LikeButton(
+                              size: 26,
+                              likeBuilder: (bool isLiked) {
+                                //TODO: Implement the like logic
+                                return Icon(
+                                  isLiked
+                                      ? Icons.favorite
+                                      : Icons.favorite_outline,
+                                  color: isLiked ? Colors.red : Colors.white,
+                                );
+                              },
+                            ),
+                            LikeButton(
+                              size: 26,
+                              likeBuilder: (bool isLiked) {
+                                //TODO: Implement the add to cart logic
+                                return Icon(
+                                  Icons.shopping_cart,
+                                  color: isLiked ? Colors.green : Colors.white,
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              newPageProgressIndicatorBuilder: (context) {
+                return const Center(
+                  child: SpinKitFadingFour(
+                    color: Colors.white,
+                  ),
+                );
+              },
+              firstPageProgressIndicatorBuilder: (context) {
+                if (!loadingStart) {
+                  loadingStart = true;
+                  return const Center(
+                    child: SpinKitFadingFour(
+                      color: Colors.white,
                     ),
-                  )
-                ],
-              ),
-            );
-          },
+                  );
+                } else {
+                  return const SizedBox();
+                }
+              },
+            ),
+          ),
         ),
       ),
     );
@@ -112,7 +231,7 @@ class ProductCardImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CachedNetworkImage(
-      width: MediaQuery.of(context).size.height/6,
+      width: MediaQuery.of(context).size.height / 6,
       imageUrl: imageURL,
       imageBuilder: (context, imageProvider) => Container(
         decoration: BoxDecoration(
@@ -128,9 +247,17 @@ class ProductCardImage extends StatelessWidget {
           const SpinKitFadingFour(
         color: Colors.white,
       ),
-      errorWidget: (context, url, error) => const Icon(
-        Icons.error,
-        color: Colors.white,
+      errorWidget: (context, url, error) => Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.transparent, width: 2),
+          borderRadius: BorderRadius.circular(20),
+          image: const DecorationImage(
+            image: AssetImage(
+              kBrandLogo,
+            ),
+            fit: BoxFit.fill,
+          ),
+        ),
       ),
     );
   }
