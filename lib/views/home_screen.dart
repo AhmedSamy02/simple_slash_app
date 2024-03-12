@@ -100,10 +100,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               Expanded(
                                 flex: 5,
                                 child: Text(
-                                  '${item.brand!.name} - ${item.name}',
+                                  '${item.name} - ${item.brand!.name}',
                                   maxLines: 2,
                                   style: GoogleFonts.roboto(
-                                    fontSize: 12.0,
+                                    fontSize: 13.0,
                                     fontWeight: FontWeight.w900,
                                     color: Colors.white,
                                   ),

@@ -9,7 +9,7 @@ class GetAllProducts {
   static Future<List<Product>> getProducts(int pageSize, int pageNumber) async {
     try {
       final response = await _dio.get(kBaseURL + _endpoint, queryParameters: {
-        'page': pageNumber + 1,
+        'page': pageNumber ~/ pageSize + 1,
         'limit': pageSize,
       });
       List<Product> products = [];
