@@ -12,6 +12,8 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return  MaterialApp(
+      theme: ThemeData.dark(),
+      debugShowCheckedModeBanner: false,
       routes: {
         kHomeScreen:(context) => const HomeScreen(),
       },
