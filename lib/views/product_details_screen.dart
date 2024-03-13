@@ -1,8 +1,10 @@
+import 'package:accordion/accordion.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:chip_list/chip_list.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_slash_app/constants.dart';
 
@@ -13,6 +15,7 @@ class ProductDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.black,
         title: Text(
           'Product Details',
           style: GoogleFonts.notoSansTangsa(
@@ -26,40 +29,59 @@ class ProductDetailsScreen extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Swiper(
-              layout: SwiperLayout.CUSTOM,
-              customLayoutOption:
-                  CustomLayoutOption(startIndex: -1, stateCount: 3)
-                    ..addRotate(
-                      [-45.0 / 180, 0.0, 45.0 / 180],
-                    )
-                    ..addTranslate([
-                      Offset(-300.0, -40.0),
-                      Offset(.0, 0.0),
-                      Offset(300.0, -40.0)
-                    ]),
-              itemWidth: 300.0,
-              itemHeight: 250.0,
-              itemBuilder: (context, index) {
-                return Card(
-                  color: Colors.blueAccent,
-                  elevation: 10,
-                );
-              },
-              pagination: SwiperCustomPagination(
-                builder: (context, config) {
-                  return Container();
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Swiper(
+                layout: SwiperLayout.CUSTOM,
+                customLayoutOption:
+                    CustomLayoutOption(startIndex: -1, stateCount: 3)
+                      ..addRotate(
+                        [-45.0 / 180, 0.0, 45.0 / 180],
+                      )
+                      ..addTranslate([
+                        Offset(-300.0, -50.0),
+                        Offset(.0, 0.0),
+                        Offset(300.0, -50.0)
+                      ]),
+                itemWidth: 300.0,
+                itemHeight: 270.0,
+                itemBuilder: (context, index) {
+                  return Card(
+                    color: Colors.black26,
+                    elevation: 18,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: CachedNetworkImage(
+                        imageUrl: 'https://picsum.photos/${index * 200}/500',
+                        progressIndicatorBuilder: (context, url, progress) {
+                          return const Center(
+                            child: SpinKitFadingCube(
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          );
+                        },
+                        fit: BoxFit.fill,
+                        filterQuality: FilterQuality.none,
+                      ),
+                    ),
+                  );
                 },
+                pagination: SwiperCustomPagination(
+                  builder: (context, config) {
+                    return const SizedBox();
+                  },
+                ),
+                itemCount: 10,
+                loop: false,
               ),
-              itemCount: 10,
-              loop: false,
             ),
             Padding(
               padding: const EdgeInsets.only(
                 left: 16,
                 right: 16,
                 top: 18,
-                bottom: 2,
+                bottom: 5,
               ),
               child: SizedBox(
                 height: 75,
@@ -105,7 +127,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     children: [
                       CircleAvatar(
                         backgroundImage: CachedNetworkImageProvider(
-                          'https://picsum.photos/200/300',
+                          'https://picsum.photos/800/300',
                         ),
                         radius: 26,
                       ),
@@ -178,9 +200,52 @@ class ProductDetailsScreen extends StatelessWidget {
                 ],
               ),
             ),
+            DescriptionBar(
+              text: 'This is a good product',
+            ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class DescriptionBar extends StatelessWidget {
+  const DescriptionBar({
+    super.key,
+    required this.text,
+  });
+  final String text;
+  @override
+  Widget build(BuildContext context) {
+    return Accordion(
+      disableScrolling: true,
+      children: [
+        AccordionSection(
+          header: Text(
+            'Description',
+            style: GoogleFonts.roboto(
+              fontSize: 16.0,
+              fontWeight: FontWeight.w600,
+              color: Colors.white70,
+            ),
+          ),
+          headerPadding:
+              const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
+          content: Text(
+            text,
+            style: GoogleFonts.roboto(
+              fontSize: 14.0,
+              color: Colors.white,
+            ),
+          ),
+          headerBorderWidth: 0,
+          headerBackgroundColor: Colors.grey[850],
+          contentBackgroundColor: Colors.grey[850],
+          contentBorderWidth: 0,
+          contentBorderRadius: 10,
+        ),
+      ],
     );
   }
 }
@@ -319,9 +384,17 @@ class ImageSliderChooser extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
               clipBehavior: Clip.antiAlias,
-              child: Image.network(
-                'https://picsum.photos/200/300',
-                fit: BoxFit.cover,
+              child: CachedNetworkImage(
+                imageUrl: 'https://picsum.photos/4000/300',
+                progressIndicatorBuilder: (context, url, progress) {
+                  return const Center(
+                    child: SpinKitFadingCircle(
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                  );
+                },
+                fit: BoxFit.fill,
                 width: 45,
               ),
             ),

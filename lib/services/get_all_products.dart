@@ -14,7 +14,7 @@ class GetAllProducts {
       });
       List<Product> products = [];
       for (var item in response.data['data']) {
-        products.add(Product.fromJson(item));
+        products.add(Product.fromJsonHome(item));
       }
       return products;
     } on DioException catch (e) {

@@ -15,12 +15,13 @@ class Product {
     this.brand,
   });
 
-  factory Product.fromJson(Map<String, dynamic> json) {
+  factory Product.fromJsonHome(Map<String, dynamic> json) {
     return Product(
       id: json['id'],
       price: json['ProductVariations'][0]['price'],
       name: json['name'],
-      image: json['ProductVariations'][0]['ProductVarientImages'][0]['image_path'],
+      image: json['ProductVariations'][0]['ProductVarientImages'][0]
+          ['image_path'],
       brand: Brand.fromJson(json['Brands']),
     );
   }
