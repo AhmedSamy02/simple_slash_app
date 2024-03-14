@@ -1,15 +1,34 @@
 import 'package:accordion/accordion.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:card_swiper/card_swiper.dart';
-import 'package:chip_list/chip_list.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:simple_slash_app/components/description_bar.dart';
+import 'package:simple_slash_app/components/image_preveiwer_row.dart';
+import 'package:simple_slash_app/components/list_of_tags.dart';
+import 'package:simple_slash_app/components/select_text_header.dart';
 import 'package:simple_slash_app/constants.dart';
+import 'package:simple_slash_app/models/product.dart';
+import 'package:simple_slash_app/services/get_product_by_id.dart';
 
-class ProductDetailsScreen extends StatelessWidget {
+class ProductDetailsScreen extends StatefulWidget {
   const ProductDetailsScreen({super.key});
+
+  @override
+  State<ProductDetailsScreen> createState() => _ProductDetailsScreenState();
+}
+
+class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
+  int _id = 0;
+  final SwiperController _swiperController = SwiperController();
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    super.didChangeDependencies();
+    _id = ModalRoute.of(context)!.settings.arguments as int;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,229 +45,173 @@ class ProductDetailsScreen extends StatelessWidget {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Swiper(
-                layout: SwiperLayout.CUSTOM,
-                customLayoutOption:
-                    CustomLayoutOption(startIndex: -1, stateCount: 3)
-                      ..addRotate(
-                        [-45.0 / 180, 0.0, 45.0 / 180],
-                      )
-                      ..addTranslate([
-                        Offset(-300.0, -50.0),
-                        Offset(.0, 0.0),
-                        Offset(300.0, -50.0)
-                      ]),
-                itemWidth: 300.0,
-                itemHeight: 270.0,
-                itemBuilder: (context, index) {
-                  return Card(
-                    color: Colors.black26,
-                    elevation: 18,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(16),
-                      child: CachedNetworkImage(
-                        imageUrl: 'https://picsum.photos/${index * 200}/500',
-                        progressIndicatorBuilder: (context, url, progress) {
-                          return const Center(
-                            child: SpinKitFadingCube(
-                              color: Colors.white,
-                              size: 20,
+      body: FutureBuilder<Product>(
+        future: GetProductById.getProductById(_id),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: SpinKitFadingCube(
+                color: Colors.white,
+                size: 20,
+              ),
+            );
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                snapshot.error.toString(),
+                style: GoogleFonts.roboto(
+                  fontSize: 16.0,
+                  color: Colors.white,
+                ),
+              ),
+            );
+          } else {
+            var product = snapshot.data!;
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  ImagesPreviewerRow(
+                      swiperController: _swiperController,
+                      images: product.variations![0].images!),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.4,
+                                child: Text(
+                                  product.name!,
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 20.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
-                          );
-                        },
-                        fit: BoxFit.fill,
-                        filterQuality: FilterQuality.none,
-                      ),
+                            Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text(
+                                'EGP ${product.variations![0].price}',
+                                style: GoogleFonts.roboto(
+                                  fontSize: 17.0,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        Column(
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: product.brand!.logo!,
+                              imageBuilder: (context, imageProvider) =>
+                                  Container(
+                                width: 60.0,
+                                height: 60.0,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  image: DecorationImage(
+                                      image: imageProvider, fit: BoxFit.cover),
+                                ),
+                              ),
+                              placeholder: (context, url) =>
+                                  const SpinKitSpinningLines(
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                              errorWidget: (context, url, error) =>
+                                  const CircleAvatar(
+                                backgroundColor: Colors.black,
+                                foregroundImage: AssetImage(
+                                  kBrandLogo,
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8),
+                              child: SizedBox(
+                                width: 120,
+                                child: Text(
+                                  product.brand!.name!,
+                                  maxLines: 1,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.roboto(
+                                    fontSize: 14.0,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  );
-                },
-                pagination: SwiperCustomPagination(
-                  builder: (context, config) {
-                    return const SizedBox();
-                  },
-                ),
-                itemCount: 10,
-                loop: false,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 18,
-                bottom: 5,
-              ),
-              child: SizedBox(
-                height: 75,
-                child: ImageSliderChooser(),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: SizedBox(
-                          width: MediaQuery.of(context).size.width * 0.4,
-                          child: Text(
-                            'Product Name',
-                            style: GoogleFonts.roboto(
-                              fontSize: 20.0,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                  ),
+                  product.colors == null
+                      ? const SizedBox()
+                      : Column(
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: SelectTextHeader(head: 'Color'),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: ColorHorizontalList(
+                                position: 0,
+                                colors: product.colors!.keys.toList(),
+                              ),
+                            )
+                          ],
+                        ),
+                  product.sizes == null
+                      ? const SizedBox()
+                      : Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              const SelectTextHeader(head: 'Size'),
+                              ListOfTags(
+                                tags: product.sizes!.keys.toList(),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          'EGP 1000',
-                          style: GoogleFonts.roboto(
-                            fontSize: 17.0,
-                            color: Colors.white,
+                  product.materials == null
+                      ? const SizedBox()
+                      : Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              const SelectTextHeader(head: 'Material'),
+                              ListOfTags(
+                                  tags: product.materials!.keys.toList()),
+                            ],
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Column(
-                    children: [
-                      CircleAvatar(
-                        backgroundImage: CachedNetworkImageProvider(
-                          'https://picsum.photos/800/300',
+                  product.description == null || product.description == ''
+                      ? const SizedBox()
+                      : DescriptionBar(
+                          text: product.description!,
                         ),
-                        radius: 26,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: SizedBox(
-                          width: 120,
-                          child: Text(
-                            'Brand Name',
-                            maxLines: 1,
-                            textAlign: TextAlign.center,
-                            style: GoogleFonts.roboto(
-                              fontSize: 14.0,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
-            ),
-            Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SelectTextHeader(head: 'Color'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
-                  child: ColorHorizontalList(
-                    position: 0,
-                    colors: [
-                      Colors.red,
-                      Colors.blue,
-                      Colors.green,
-                      Colors.yellow,
-                      Colors.purple,
-                      Colors.orange,
-                      Colors.pink,
-                      Colors.teal,
-                      Colors.brown,
-                      Colors.grey,
-                      Colors.indigo,
-                      Colors.lime,
-                      Colors.amber,
-                      Colors.cyan,
-                      Colors.deepPurple,
-                    ],
-                  ),
-                )
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  SelectTextHeader(head: 'Size'),
-                  ListOfTags(tags: ['S', 'M', 'L', 'XL']),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  SelectTextHeader(head: 'Material'),
-                  ListOfTags(tags: ['Cotton', 'Polyester', 'Wool', 'Silk']),
-                ],
-              ),
-            ),
-            DescriptionBar(
-              text: 'This is a good product',
-            ),
-          ],
-        ),
+            );
+          }
+        },
       ),
     );
   }
 }
 
-class DescriptionBar extends StatelessWidget {
-  const DescriptionBar({
-    super.key,
-    required this.text,
-  });
-  final String text;
-  @override
-  Widget build(BuildContext context) {
-    return Accordion(
-      disableScrolling: true,
-      children: [
-        AccordionSection(
-          header: Text(
-            'Description',
-            style: GoogleFonts.roboto(
-              fontSize: 16.0,
-              fontWeight: FontWeight.w600,
-              color: Colors.white70,
-            ),
-          ),
-          headerPadding:
-              const EdgeInsets.symmetric(horizontal: 15, vertical: 20),
-          content: Text(
-            text,
-            style: GoogleFonts.roboto(
-              fontSize: 14.0,
-              color: Colors.white,
-            ),
-          ),
-          headerBorderWidth: 0,
-          headerBackgroundColor: Colors.grey[850],
-          contentBackgroundColor: Colors.grey[850],
-          contentBorderWidth: 0,
-          contentBorderRadius: 10,
-        ),
-      ],
-    );
-  }
-}
 
 class ColorHorizontalList extends StatefulWidget {
   const ColorHorizontalList({
@@ -266,7 +229,6 @@ class _ColorHorizontalListState extends State<ColorHorizontalList> {
   int _position = 0;
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _position = widget.position;
   }
@@ -284,19 +246,19 @@ class _ColorHorizontalListState extends State<ColorHorizontalList> {
           });
         },
         decorator: DotsDecorator(
-          size: Size.fromRadius(11),
-          activeSize: Size.fromRadius(12),
-          spacing: EdgeInsets.all(5),
+          size: const Size.fromRadius(11),
+          activeSize: const Size.fromRadius(12),
+          spacing: const EdgeInsets.all(5),
           activeColors: widget.colors,
           colors: widget.colors,
-          shape: CircleBorder(
+          shape: const CircleBorder(
             side: BorderSide(
               color: Colors.white12,
               width: 2,
               strokeAlign: 1,
             ),
           ),
-          activeShape: CircleBorder(
+          activeShape: const CircleBorder(
             side: BorderSide(
               strokeAlign: 3,
               color: Colors.white,
@@ -309,98 +271,4 @@ class _ColorHorizontalListState extends State<ColorHorizontalList> {
   }
 }
 
-class ListOfTags extends StatelessWidget {
-  const ListOfTags({
-    super.key,
-    required this.tags,
-  });
-  final List<String> tags;
-  @override
-  Widget build(BuildContext context) {
-    return ChipList(
-      listOfChipNames: tags,
-      showCheckmark: false,
-      shouldWrap: true,
-      listOfChipIndicesCurrentlySeclected: [0],
-      inactiveBorderColorList: [Colors.transparent],
-      activeBgColorList: [kDefaultActiveChipColor],
-      activeTextColorList: [Colors.black],
-      style: GoogleFonts.roboto(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-      ),
-      inactiveBgColorList: [Colors.grey[900]!],
-      borderRadiiList: [10],
-      activeBorderColorList: [kDefaultActiveChipColor],
-      inactiveTextColorList: [Colors.white],
-    );
-  }
-}
 
-class SelectTextHeader extends StatelessWidget {
-  const SelectTextHeader({
-    super.key,
-    required this.head,
-  });
-  final String head;
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: Text(
-        'Select $head',
-        style: GoogleFonts.roboto(
-          fontSize: 16.0,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
-class ImageSliderChooser extends StatelessWidget {
-  const ImageSliderChooser({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-      itemCount: 4,
-      scrollDirection: Axis.horizontal,
-      shrinkWrap: true,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Container(
-            decoration: BoxDecoration(
-              border: Border.all(
-                color: kDefaultActiveChipColor,
-                width: 1,
-              ),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              clipBehavior: Clip.antiAlias,
-              child: CachedNetworkImage(
-                imageUrl: 'https://picsum.photos/4000/300',
-                progressIndicatorBuilder: (context, url, progress) {
-                  return const Center(
-                    child: SpinKitFadingCircle(
-                      color: Colors.white70,
-                      size: 20,
-                    ),
-                  );
-                },
-                fit: BoxFit.fill,
-                width: 45,
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}

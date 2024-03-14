@@ -1,5 +1,11 @@
 class ProductVariation {
-  String? id;
+  int? id;
   int? price;
   List<String>? images;
+
+  ProductVariation({
+    this.id,
+    this.price,
+    this.images,
+  });
 }

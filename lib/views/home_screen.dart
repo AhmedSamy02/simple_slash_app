@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, item, index) {
                 return GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, kProductDetailsScreen);
+                    Navigator.pushNamed(context, kProductDetailsScreen,arguments: item.id);
                   },
                   child: Container(
                     margin: const EdgeInsets.only(left: 20.0),
