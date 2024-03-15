@@ -83,7 +83,8 @@ class _HomeScreenState extends State<HomeScreen> {
               itemBuilder: (context, item, index) {
                 return GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, kProductDetailsScreen,arguments: item.id);
+                    Navigator.pushNamed(context, kProductDetailsScreen,
+                        arguments: item.id);
                   },
                   child: Container(
                     margin: const EdgeInsets.only(left: 20.0),
@@ -244,6 +245,9 @@ class ProductCardImage extends StatelessWidget {
         width: MediaQuery.of(context).size.width / 3,
         imageUrl: imageURL,
         fit: BoxFit.cover,
+        errorWidget: (context, url, error) {
+          return Image.asset(kBrandLogo);
+        },
         progressIndicatorBuilder: (context, url, downloadProgress) =>
             const SpinKitFadingFour(
           color: Colors.white,

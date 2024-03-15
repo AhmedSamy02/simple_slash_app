@@ -19,8 +19,10 @@ class ImagesPreviewerRow extends StatelessWidget {
     return Swiper(
       controller: swiperController,
       fade: 0,
+      
       layout: SwiperLayout.CUSTOM,
       containerHeight: MediaQuery.of(context).size.height * 0.3,
+      axisDirection: AxisDirection.right,
       customLayoutOption: CustomLayoutOption(startIndex: -1, stateCount: 3)
         ..addRotate(
           [-60.0 / 180, 0.0, 60.0 / 180],
@@ -31,16 +33,19 @@ class ImagesPreviewerRow extends StatelessWidget {
           const Offset(0.0, 0.0),
           const Offset(270.0, -60.0)
         ]),
-      itemWidth: 300.0,
+      itemWidth: 270.0,
       itemHeight: 270.0,
       itemBuilder: (context, index) {
         return Card(
-          color: Colors.black26,
+          color: Colors.white,
           elevation: 18,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: CachedNetworkImage(
               imageUrl: images[index],
+              errorWidget: (context, url, error) {
+                return Image.asset(kBrandLogo,fit: BoxFit.fill,);
+              },
               progressIndicatorBuilder: (context, url, progress) {
                 return const Center(
                   child: SpinKitFadingCube(
@@ -49,7 +54,6 @@ class ImagesPreviewerRow extends StatelessWidget {
                   ),
                 );
               },
-              fit: BoxFit.fill,
               filterQuality: FilterQuality.none,
             ),
           ),
@@ -57,6 +61,7 @@ class ImagesPreviewerRow extends StatelessWidget {
       },
       pagination: SwiperCustomPagination(
         builder: (context, config) {
+          
           return Column(
             children: [
               SizedBox(
@@ -74,6 +79,7 @@ class ImagesPreviewerRow extends StatelessWidget {
                       return InkWell(
                         onTap: () {
                           swiperController.move(index);
+                          
                         },
                         child: Container(
                           margin: const EdgeInsets.all(14),
@@ -91,6 +97,13 @@ class ImagesPreviewerRow extends StatelessWidget {
                             clipBehavior: Clip.antiAlias,
                             child: CachedNetworkImage(
                               imageUrl: images[index],
+                              errorWidget: (context, url, error) {
+                                                return Image.asset(
+                                  kBrandLogo,
+                                  fit: BoxFit.fill,
+                                );
+
+                              },
                               progressIndicatorBuilder:
                                   (context, url, progress) {
                                 return const Center(

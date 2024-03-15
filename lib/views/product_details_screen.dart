@@ -1,15 +1,18 @@
-import 'package:accordion/accordion.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:simple_slash_app/components/brand_details.dart';
+import 'package:simple_slash_app/components/color_image_list_view.dart';
 import 'package:simple_slash_app/components/description_bar.dart';
 import 'package:simple_slash_app/components/image_preveiwer_row.dart';
 import 'package:simple_slash_app/components/list_of_tags.dart';
+import 'package:simple_slash_app/components/product_name_and_price.dart';
 import 'package:simple_slash_app/components/select_text_header.dart';
-import 'package:simple_slash_app/constants.dart';
+import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
+import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
 import 'package:simple_slash_app/models/product.dart';
 import 'package:simple_slash_app/services/get_product_by_id.dart';
 
@@ -32,186 +35,163 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        surfaceTintColor: Colors.black,
-        title: Text(
-          'Product Details',
-          style: GoogleFonts.notoSansTangsa(
-            fontSize: 20.0,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+    return BlocProvider(
+      create: (context) => ProductDetailsCubit(),
+      child: Scaffold(
+        appBar: AppBar(
+          surfaceTintColor: Colors.black,
+          title: Text(
+            'Product Details $_id',
+            style: GoogleFonts.notoSansTangsa(
+              fontSize: 20.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: FutureBuilder<Product>(
-        future: GetProductById.getProductById(_id),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: SpinKitFadingCube(
-                color: Colors.white,
-                size: 20,
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                snapshot.error.toString(),
-                style: GoogleFonts.roboto(
-                  fontSize: 16.0,
+        body: FutureBuilder<Product>(
+          future: GetProductById.getProductById(_id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: SpinKitFadingCube(
                   color: Colors.white,
+                  size: 20,
                 ),
-              ),
-            );
-          } else {
-            var product = snapshot.data!;
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  ImagesPreviewerRow(
-                      swiperController: _swiperController,
-                      images: product.variations![0].images!),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Row(
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: SizedBox(
-                                width: MediaQuery.of(context).size.width * 0.4,
-                                child: Text(
-                                  product.name!,
-                                  style: GoogleFonts.roboto(
-                                    fontSize: 20.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                'EGP ${product.variations![0].price}',
-                                style: GoogleFonts.roboto(
-                                  fontSize: 17.0,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const Spacer(),
-                        Column(
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: product.brand!.logo!,
-                              imageBuilder: (context, imageProvider) =>
-                                  Container(
-                                width: 60.0,
-                                height: 60.0,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  image: DecorationImage(
-                                      image: imageProvider, fit: BoxFit.cover),
-                                ),
-                              ),
-                              placeholder: (context, url) =>
-                                  const SpinKitSpinningLines(
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                              errorWidget: (context, url, error) =>
-                                  const CircleAvatar(
-                                backgroundColor: Colors.black,
-                                foregroundImage: AssetImage(
-                                  kBrandLogo,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: SizedBox(
-                                width: 120,
-                                child: Text(
-                                  product.brand!.name!,
-                                  maxLines: 1,
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.roboto(
-                                    fontSize: 14.0,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+              );
+            } else if (snapshot.hasError) {
+              return Center(
+                child: Text(
+                  snapshot.error.toString(),
+                  style: GoogleFonts.roboto(
+                    fontSize: 16.0,
+                    color: Colors.white,
                   ),
-                  product.colors == null
-                      ? const SizedBox()
-                      : Column(
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: SelectTextHeader(head: 'Color'),
+                ),
+              );
+            } else {
+              var product = snapshot.data!;
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    BlocBuilder<ProductDetailsCubit, ProductDetailsStates>(
+                      builder: (context, state) {
+                        if (state is ProductDetailsInitialState) {
+                          return ImagesPreviewerRow(
+                              swiperController: _swiperController,
+                              images: product.variations![0].images!);
+                        } else if (state is ProductDetailsSuccessState) {
+                          for (var variation in product.variations!) {
+                            if (variation.id == state.id) {
+                              return ImagesPreviewerRow(
+                                  swiperController: _swiperController,
+                                  images: variation.images!);
+                            }
+                          }
+                        }
+                        return const SizedBox();
+                      },
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Row(
+                        children: [
+                          ProductNameAndPrice(product: product),
+                          const Spacer(),
+                          BrandDetails(product: product),
+                        ],
+                      ),
+                    ),
+                    product.colorImages == null
+                        ? const SizedBox()
+                        : Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: SelectTextHeader(head: 'Color'),
+                              ),
+                              ColorImageListView(
+                                  images:
+                                      product.colorImages!.map((key, value) {
+                                return MapEntry(
+                                  key,
+                                  value[0],
+                                );
+                              }))
+                            ],
+                          ),
+                    product.colors == null
+                        ? const SizedBox()
+                        : Column(
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: SelectTextHeader(head: 'Color'),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8.0),
+                                child: ColorHorizontalList(
+                                  position: 0,
+                                  colors: product.colors!,
+                                ),
+                              )
+                            ],
+                          ),
+                    product.sizes == null
+                        ? const SizedBox()
+                        : Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                const SelectTextHeader(head: 'Size'),
+                                ListOfTags(
+                                  tags: {
+                                    'S': 0,
+                                    'M': 1,
+                                    'L': 2,
+                                  },
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8.0),
-                              child: ColorHorizontalList(
-                                position: 0,
-                                colors: product.colors!.keys.toList(),
-                              ),
-                            )
-                          ],
-                        ),
-                  product.sizes == null
-                      ? const SizedBox()
-                      : Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              const SelectTextHeader(head: 'Size'),
-                              ListOfTags(
-                                tags: product.sizes!.keys.toList(),
-                              ),
-                            ],
                           ),
-                        ),
-                  product.materials == null
-                      ? const SizedBox()
-                      : Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            children: [
-                              const SelectTextHeader(head: 'Material'),
-                              ListOfTags(
-                                  tags: product.materials!.keys.toList()),
-                            ],
+                    product.materials == null
+                        ? const SizedBox()
+                        : Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              children: [
+                                const SelectTextHeader(head: 'Material'),
+                                ListOfTags(tags: {
+                                  'S': 0,
+                                  'M': 1,
+                                  'L': 2,
+                                }),
+                              ],
+                            ),
                           ),
-                        ),
-                  product.description == null || product.description == ''
-                      ? const SizedBox()
-                      : DescriptionBar(
-                          text: product.description!,
-                        ),
-                ],
-              ),
-            );
-          }
-        },
+                    product.description == null || product.description == ''
+                        ? const SizedBox()
+                        : DescriptionBar(
+                            text: product.description!,
+                          ),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }
-}
 
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _swiperController.dispose();
+  }
+}
 
 class ColorHorizontalList extends StatefulWidget {
   const ColorHorizontalList({
@@ -220,7 +200,7 @@ class ColorHorizontalList extends StatefulWidget {
     required this.colors,
   });
   final int position;
-  final List<Color> colors;
+  final Map<Color, List<int>> colors;
   @override
   State<ColorHorizontalList> createState() => _ColorHorizontalListState();
 }
@@ -241,6 +221,10 @@ class _ColorHorizontalListState extends State<ColorHorizontalList> {
         dotsCount: widget.colors.length,
         position: _position,
         onTap: (position) {
+          int index = widget.colors.values.elementAt(position).first;
+          BlocProvider.of<ProductDetailsCubit>(context)
+              .emit(ProductDetailsSuccessState(index));
+
           setState(() {
             _position = position;
           });
@@ -249,8 +233,8 @@ class _ColorHorizontalListState extends State<ColorHorizontalList> {
           size: const Size.fromRadius(11),
           activeSize: const Size.fromRadius(12),
           spacing: const EdgeInsets.all(5),
-          activeColors: widget.colors,
-          colors: widget.colors,
+          activeColors: widget.colors.keys.toList(),
+          colors: widget.colors.keys.toList(),
           shape: const CircleBorder(
             side: BorderSide(
               color: Colors.white12,
@@ -270,5 +254,3 @@ class _ColorHorizontalListState extends State<ColorHorizontalList> {
     );
   }
 }
-
-

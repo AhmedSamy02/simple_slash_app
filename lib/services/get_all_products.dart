@@ -13,13 +13,14 @@ class GetAllProducts {
         'limit': pageSize,
       });
       List<Product> products = [];
+      
       for (var item in response.data['data']) {
         products.add(Product.fromJsonHome(item));
       }
       return products;
-    } on DioException catch (e) {
-      logger.e(e.message!);
-      throw e.message!;
+    } catch (e) {
+      logger.e(e);
+      throw e;
     }
   }
 }

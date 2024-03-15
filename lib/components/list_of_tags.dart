@@ -1,14 +1,17 @@
 import 'package:chip_list/chip_list.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_slash_app/constants.dart';
+import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
+import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
 
 class ListOfTags extends StatefulWidget {
   const ListOfTags({
     super.key,
     required this.tags,
   });
-  final List<String> tags;
+  final Map<String, int> tags;
 
   @override
   State<ListOfTags> createState() => _ListOfTagsState();
@@ -26,21 +29,23 @@ class _ListOfTagsState extends State<ListOfTags> {
   Widget build(BuildContext context) {
     return ChipList(
       extraOnToggle: (index) {
+        int id = widget.tags.values.elementAt(index);
+        BlocProvider.of<ProductDetailsCubit>(context)
+            .emit(ProductDetailsSuccessState(id));
         setState(() {
           _index = index;
         });
       },
-      listOfChipNames: widget.tags,
+      listOfChipNames: widget.tags.keys.toList(),
       showCheckmark: false,
-      
       shouldWrap: true,
       listOfChipIndicesCurrentlySeclected: [_index],
       inactiveBorderColorList: [Colors.transparent],
       activeBgColorList: [kDefaultActiveChipColor],
       activeTextColorList: [Colors.black],
       style: GoogleFonts.roboto(
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
+        fontSize: 16,
+        fontWeight: FontWeight.w700,
       ),
       inactiveBgColorList: [Colors.grey[900]!],
       borderRadiiList: [10],
