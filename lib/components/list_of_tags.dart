@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_slash_app/constants.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
+import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_cubit.dart';
+import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_states.dart';
 
 class ListOfTags extends StatefulWidget {
   const ListOfTags({
@@ -12,7 +14,6 @@ class ListOfTags extends StatefulWidget {
     required this.tags,
   });
   final Map<String, int> tags;
-
   @override
   State<ListOfTags> createState() => _ListOfTagsState();
 }
@@ -30,8 +31,9 @@ class _ListOfTagsState extends State<ListOfTags> {
     return ChipList(
       extraOnToggle: (index) {
         int id = widget.tags.values.elementAt(index);
-        BlocProvider.of<ProductDetailsCubit>(context)
-            .emit(ProductDetailsSuccessState(id));
+
+        BlocProvider.of<UpdatePriceDetailsCubit>(context)
+            .emit(UpdatePriceDetailsSuccessState(id:id));
         setState(() {
           _index = index;
         });

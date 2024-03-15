@@ -130,8 +130,6 @@ class GetProductById {
           product.materials!.remove(id);
         }
       }
-      var t =
-          product.getSizesAndMaterialFromColor(product.variations!.last.color);
       return product;
     } on DioException catch (e) {
       throw e.message!;

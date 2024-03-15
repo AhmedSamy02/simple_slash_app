@@ -1,3 +1,4 @@
+import 'package:analyzer_plugin/utilities/pair.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +14,10 @@ import 'package:simple_slash_app/components/product_name_and_price.dart';
 import 'package:simple_slash_app/components/select_text_header.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
+import 'package:simple_slash_app/cubits/update_details_cubit/update_details_cubit.dart';
+import 'package:simple_slash_app/cubits/update_details_cubit/update_details_states.dart';
+import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_cubit.dart';
+import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_states.dart';
 import 'package:simple_slash_app/models/product.dart';
 import 'package:simple_slash_app/services/get_product_by_id.dart';
 
@@ -35,8 +40,18 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ProductDetailsCubit(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (context) => ProductDetailsCubit(),
+        ),
+        BlocProvider(
+          create: (context) => UpdatePriceDetailsCubit(),
+        ),
+        BlocProvider(
+          create: (context) => UpdateDetailsCubit(),
+        ),
+      ],
       child: Scaffold(
         appBar: AppBar(
           surfaceTintColor: Colors.black,
@@ -103,73 +118,94 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         ],
                       ),
                     ),
-                    product.colorImages == null
-                        ? const SizedBox()
-                        : Column(
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: SelectTextHeader(head: 'Color'),
-                              ),
-                              ColorImageListView(
-                                  images:
-                                      product.colorImages!.map((key, value) {
-                                return MapEntry(
-                                  key,
-                                  value[0],
-                                );
-                              }))
-                            ],
-                          ),
-                    product.colors == null
-                        ? const SizedBox()
-                        : Column(
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.all(16.0),
-                                child: SelectTextHeader(head: 'Color'),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 8.0),
-                                child: ColorHorizontalList(
-                                  position: 0,
-                                  colors: product.colors!,
-                                ),
-                              )
-                            ],
-                          ),
-                    product.sizes == null
-                        ? const SizedBox()
-                        : Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                const SelectTextHeader(head: 'Size'),
-                                ListOfTags(
-                                  tags: {
-                                    'S': 0,
-                                    'M': 1,
-                                    'L': 2,
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                    product.materials == null
-                        ? const SizedBox()
-                        : Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                const SelectTextHeader(head: 'Material'),
-                                ListOfTags(tags: {
-                                  'S': 0,
-                                  'M': 1,
-                                  'L': 2,
-                                }),
-                              ],
-                            ),
-                          ),
+                    BlocBuilder<UpdateDetailsCubit, UpdateDetailsState>(
+                      builder: (context, state) {
+                        List<int> variationIds = [];
+                        if (product.colors == null) {
+                          variationIds = product.getAllVariationIds();
+                        } else {
+                          variationIds = product.colors!.values.first;
+                        }
+                        late Pair<List<String>, List<String>> proprty;
+                        if (state is UpdateDetailsInitialState) {
+                          proprty = product.getSizesAndMaterialFromColor(
+                              product.colors?.keys.first);
+                        } else if (state is UpdateDetailsSuccessState) {
+                          proprty =
+                              product.getSizesAndMaterialFromColor(state.color);
+                              variationIds = product.colors![state.color]!;
+                        }
+                        return Column(
+                          children: [
+                            product.colorImages == null
+                                ? const SizedBox()
+                                : Column(
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(16.0),
+                                        child: SelectTextHeader(head: 'Color'),
+                                      ),
+                                      ColorImageListView(
+                                          images: product.colorImages!
+                                              .map((key, value) {
+                                        return MapEntry(
+                                          key,
+                                          value[0],
+                                        );
+                                      }))
+                                    ],
+                                  ),
+                            product.colors == null
+                                ? const SizedBox()
+                                : Column(
+                                    children: [
+                                      const Padding(
+                                        padding: EdgeInsets.all(16.0),
+                                        child: SelectTextHeader(head: 'Color'),
+                                      ),
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(left: 8.0),
+                                        child: ColorHorizontalList(
+                                          position: 0,
+                                          colors: product.colors!,
+                                        ),
+                                      )
+                                    ],
+                                  ),
+                            proprty.first.isEmpty
+                                ? const SizedBox()
+                                : Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        const SelectTextHeader(head: 'Size'),
+                                        ListOfTags(
+                                          tags: Map.fromIterables(
+                                              proprty.first, variationIds),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                            proprty.last.isEmpty
+                                ? const SizedBox()
+                                : Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Column(
+                                      children: [
+                                        const SelectTextHeader(
+                                            head: 'Material'),
+                                        ListOfTags(
+                                          tags: Map.fromIterables(
+                                              proprty.last, variationIds),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                          ],
+                        );
+                      },
+                    ),
                     product.description == null || product.description == ''
                         ? const SizedBox()
                         : DescriptionBar(
@@ -222,8 +258,13 @@ class _ColorHorizontalListState extends State<ColorHorizontalList> {
         position: _position,
         onTap: (position) {
           int index = widget.colors.values.elementAt(position).first;
+          BlocProvider.of<UpdatePriceDetailsCubit>(context)
+              .emit(UpdatePriceDetailsSuccessState(id: index));
           BlocProvider.of<ProductDetailsCubit>(context)
               .emit(ProductDetailsSuccessState(index));
+          BlocProvider.of<UpdateDetailsCubit>(context).emit(
+              UpdateDetailsSuccessState(
+                  widget.colors.keys.elementAt(position)));
 
           setState(() {
             _position = position;

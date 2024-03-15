@@ -71,6 +71,13 @@ class Product {
     }
     return Pair(sizes, materials);
   }
+  List<int>getAllVariationIds(){
+    List<int> ids = [];
+    for (var variation in variations!) {
+      ids.add(variation.id!);
+    }
+    return ids;
+  }
   Pair<List<String>, List<String>> getSizesAndMaterialFromColorImage(String? color) {
     List<String> sizes = [];
     List<String> materials = [];

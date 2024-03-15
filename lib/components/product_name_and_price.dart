@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
+import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_cubit.dart';
+import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_states.dart';
 import 'package:simple_slash_app/models/product.dart';
 
 class ProductNameAndPrice extends StatelessWidget {
@@ -22,7 +24,7 @@ class ProductNameAndPrice extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.4,
+            width: MediaQuery.of(context).size.width * 0.6,
             child: Text(
               product.name!,
               style: GoogleFonts.roboto(
@@ -35,9 +37,9 @@ class ProductNameAndPrice extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: BlocBuilder<ProductDetailsCubit, ProductDetailsStates>(
+          child: BlocBuilder<UpdatePriceDetailsCubit, UpdatePriceDetailsState>(
             builder: (context, state) {
-              if (state is ProductDetailsInitialState) {
+              if (state is UpdatePriceDetailsInitialState) {
                 return Text(
                   'EGP ${product.variations![0].price}',
                   style: GoogleFonts.roboto(
@@ -45,7 +47,7 @@ class ProductNameAndPrice extends StatelessWidget {
                     color: Colors.white,
                   ),
                 );
-              } else if (state is ProductDetailsSuccessState) {
+              } else if (state is UpdatePriceDetailsSuccessState) {
                 for (var variation in product.variations!) {
                   if (variation.id == state.id) {
                     return Text(
