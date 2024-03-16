@@ -3,6 +3,7 @@ import 'package:logger/logger.dart';
 
 const kBaseURL = 'https://slash-backend.onrender.com/';
 const kHomeScreen = 'home_screen';
+const kDisabledColor = Color(0xFF56594e);
 const kProductDetailsScreen = 'product_details_screen';
 const Color kDefaultActiveChipColor = Color(0xFFb4eb2d);
 const Color kDefaultInactiveChipColor = Color(0xFF19191e);
@@ -16,6 +17,7 @@ final logger = Logger(
     printTime: true,
   ),
 );
+
 extension HexColor on Color {
   /// String is in the format "aabbcc" or "ffaabbcc" with an optional leading "#".
   static Color fromHex(String hexString) {

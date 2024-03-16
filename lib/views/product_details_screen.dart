@@ -1,4 +1,5 @@
 import 'package:analyzer_plugin/utilities/pair.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:card_swiper/card_swiper.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_glow/flutter_glow.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_slash_app/components/brand_details.dart';
+import 'package:simple_slash_app/components/color_horizontal_list.dart';
 import 'package:simple_slash_app/components/color_image_list_view.dart';
 import 'package:simple_slash_app/components/description_bar.dart';
 import 'package:simple_slash_app/components/image_preveiwer_row.dart';
@@ -14,6 +16,8 @@ import 'package:simple_slash_app/components/list_of_tags.dart';
 import 'package:simple_slash_app/components/product_name_widget.dart';
 import 'package:simple_slash_app/components/select_text_header.dart';
 import 'package:simple_slash_app/constants.dart';
+import 'package:simple_slash_app/cubits/add_to_cart_cubit/add_to_cart_cubit.dart';
+import 'package:simple_slash_app/cubits/add_to_cart_cubit/add_to_cart_states.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
 import 'package:simple_slash_app/cubits/update_details_cubit/update_details_cubit.dart';
@@ -33,7 +37,6 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   int _id = 0;
-  final SwiperController _swiperController = SwiperController();
   @override
   void didChangeDependencies() {
     // TODO: implement didChangeDependencies
@@ -55,6 +58,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         BlocProvider(
           create: (context) => UpdateDetailsCubit(),
         ),
+        BlocProvider(create: (context) => AddToCartCubit()),
       ],
       child: Scaffold(
         appBar: AppBar(
@@ -99,14 +103,12 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         if (state is ProductDetailsInitialState) {
                           _currentVariation = product.variations![0];
                           return ImagesPreviewerRow(
-                              swiperController: _swiperController,
                               images: _currentVariation!.images!);
                         } else if (state is ProductDetailsSuccessState) {
                           for (var variation in product.variations!) {
                             if (variation.id == state.id) {
                               _currentVariation = variation;
                               return ImagesPreviewerRow(
-                                  swiperController: _swiperController,
                                   images: variation.images!);
                             }
                           }
@@ -260,19 +262,45 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                           ),
                     Padding(
                       padding: const EdgeInsets.only(top: 16.0),
-                      child: GlowButton(
-                        width: MediaQuery.of(context).size.width - 30,
-                        height: 45,
-                        child: Text(
-                          'Add To Cart',
-                          style: GoogleFonts.roboto(
-                            fontSize: 16.0,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black,
-                          ),
-                        ),
-                        onPressed: () {},
-                        color: kDefaultActiveChipColor,
+                      child: BlocBuilder<AddToCartCubit, AddToCartState>(
+                        builder: (context, state) {
+                          return GlowButton(
+                            width: MediaQuery.of(context).size.width - 30,
+                            height: 45,
+                            disableColor: kDisabledColor,
+                            onPressed: _currentVariation!.inStock!
+                                ? () {
+                                    final snackBar = SnackBar(
+                                      elevation: 0,
+                                      behavior: SnackBarBehavior.floating,
+                                      backgroundColor: Colors.transparent,
+                                      content: AwesomeSnackbarContent(
+                                        title: 'Success!',
+                                        message:
+                                            'Product Added To Cart Successfully!\nProduct Variation Id = ${_currentVariation!.id}',
+
+                                        contentType: ContentType.success,
+                                      ),
+                                    );
+
+                                    ScaffoldMessenger.of(context)
+                                      ..hideCurrentMaterialBanner()
+                                      ..showSnackBar(snackBar);
+                                  }
+                                : null,
+                            color: kDefaultActiveChipColor,
+                            child: Text(
+                              _currentVariation!.inStock!
+                                  ? 'Add To Cart'
+                                  : 'Out Of Stock',
+                              style: GoogleFonts.roboto(
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                     SizedBox(
@@ -283,80 +311,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
               );
             }
           },
-        ),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    _swiperController.dispose();
-  }
-}
-
-class ColorHorizontalList extends StatefulWidget {
-  const ColorHorizontalList({
-    super.key,
-    required this.position,
-    required this.colors,
-  });
-  final int position;
-  final Map<Color, List<int>> colors;
-  @override
-  State<ColorHorizontalList> createState() => _ColorHorizontalListState();
-}
-
-class _ColorHorizontalListState extends State<ColorHorizontalList> {
-  int _position = 0;
-  @override
-  void initState() {
-    super.initState();
-    _position = widget.position;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DotsIndicator(
-        dotsCount: widget.colors.length,
-        position: _position,
-        onTap: (position) {
-          int index = widget.colors.values.elementAt(position).first;
-          BlocProvider.of<UpdatePriceDetailsCubit>(context)
-              .emit(UpdatePriceDetailsSuccessState(id: index));
-          BlocProvider.of<ProductDetailsCubit>(context)
-              .emit(ProductDetailsSuccessState(index));
-          BlocProvider.of<UpdateDetailsCubit>(context).emit(
-              UpdateDetailsSuccessState(
-                  widget.colors.keys.elementAt(position)));
-
-          setState(() {
-            _position = position;
-          });
-        },
-        decorator: DotsDecorator(
-          size: const Size.fromRadius(11),
-          activeSize: const Size.fromRadius(12),
-          spacing: const EdgeInsets.all(5),
-          activeColors: widget.colors.keys.toList(),
-          colors: widget.colors.keys.toList(),
-          shape: const CircleBorder(
-            side: BorderSide(
-              color: Colors.white12,
-              width: 2,
-              strokeAlign: 1,
-            ),
-          ),
-          activeShape: const CircleBorder(
-            side: BorderSide(
-              strokeAlign: 3,
-              color: Colors.white,
-              width: 2,
-            ),
-          ),
         ),
       ),
     );

@@ -9,10 +9,8 @@ import 'package:simple_slash_app/constants.dart';
 class ImagesPreviewerRow extends StatefulWidget {
   const ImagesPreviewerRow({
     super.key,
-    required this.swiperController,
     required this.images,
   });
-  final SwiperController swiperController;
   final List<String> images;
 
   @override
