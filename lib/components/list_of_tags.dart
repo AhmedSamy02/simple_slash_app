@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_slash_app/constants.dart';
-import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
-import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
+import 'package:simple_slash_app/cubits/add_to_cart_cubit/add_to_cart_cubit.dart';
+import 'package:simple_slash_app/cubits/add_to_cart_cubit/add_to_cart_states.dart';
 import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_cubit.dart';
 import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_states.dart';
 
@@ -29,12 +29,11 @@ class _ListOfTagsState extends State<ListOfTags> {
   @override
   Widget build(BuildContext context) {
     return ChipList(
-      
       extraOnToggle: (index) {
         int id = widget.tags.values.elementAt(index);
 
         BlocProvider.of<UpdatePriceDetailsCubit>(context)
-            .emit(UpdatePriceDetailsSuccessState(id:id));
+            .emit(UpdatePriceDetailsSuccessState(id: id));
         setState(() {
           _index = index;
         });

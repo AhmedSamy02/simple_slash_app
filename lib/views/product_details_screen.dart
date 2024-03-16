@@ -64,7 +64,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
         appBar: AppBar(
           surfaceTintColor: Colors.black,
           title: Text(
-            'Product Details $_id',
+            'Product Details',
             style: GoogleFonts.notoSansTangsa(
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
@@ -144,6 +144,9 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                           in product.variations!) {
                                         if (variation.id == state.id) {
                                           _currentVariation = variation;
+                                          BlocProvider.of<AddToCartCubit>(
+                                                  context)
+                                              .emit(AddToCartSuccess());
                                           logger.i(
                                               'Current Variation: ${_currentVariation!.id}');
                                           return Text(
@@ -278,7 +281,6 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                                         title: 'Success!',
                                         message:
                                             'Product Added To Cart Successfully!\nProduct Variation Id = ${_currentVariation!.id}',
-
                                         contentType: ContentType.success,
                                       ),
                                     );

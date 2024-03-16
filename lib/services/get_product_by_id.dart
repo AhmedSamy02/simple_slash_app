@@ -18,7 +18,6 @@ class GetProductById {
       product.name = response.data['data']['name'];
       List<ProductVariation> variations = [];
       for (var item in response.data['data']['variations']) {
-        //! Ignore if the product is not in stock
 
         List<String> images = [];
         ProductVariation variation = ProductVariation(
