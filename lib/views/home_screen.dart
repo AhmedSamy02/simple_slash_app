@@ -88,6 +88,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   },
                   child: Container(
                     margin: const EdgeInsets.only(left: 20.0),
+                    height: MediaQuery.of(context).size.height /3,
                     child: Column(
                       children: [
                         Expanded(

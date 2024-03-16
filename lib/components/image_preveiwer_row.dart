@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:simple_slash_app/constants.dart';
 
-class ImagesPreviewerRow extends StatelessWidget {
+class ImagesPreviewerRow extends StatefulWidget {
   const ImagesPreviewerRow({
     super.key,
     required this.swiperController,
@@ -15,26 +15,30 @@ class ImagesPreviewerRow extends StatelessWidget {
   final List<String> images;
 
   @override
+  State<ImagesPreviewerRow> createState() => _ImagesPreviewerRowState();
+}
+
+class _ImagesPreviewerRowState extends State<ImagesPreviewerRow> {
+  @override
   Widget build(BuildContext context) {
     return Swiper(
-      controller: swiperController,
-      fade: 0,
-      
+      controller: widget.swiperController,
+      outer: false,
       layout: SwiperLayout.CUSTOM,
       containerHeight: MediaQuery.of(context).size.height * 0.3,
-      axisDirection: AxisDirection.right,
       customLayoutOption: CustomLayoutOption(startIndex: -1, stateCount: 3)
         ..addRotate(
           [-60.0 / 180, 0.0, 60.0 / 180],
         )
+        ..addScale([0.9, 1, 1], Alignment.centerLeft)
         ..addOpacity([0.5, 1, 1])
         ..addTranslate([
           const Offset(-280.0, -50.0),
           const Offset(0.0, 0.0),
           const Offset(270.0, -60.0)
         ]),
-      itemWidth: 270.0,
-      itemHeight: 270.0,
+      itemWidth: MediaQuery.of(context).size.width * 0.7,
+      itemHeight: MediaQuery.of(context).size.height * 0.315,
       itemBuilder: (context, index) {
         return Card(
           color: Colors.white,
@@ -42,9 +46,12 @@ class ImagesPreviewerRow extends StatelessWidget {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: CachedNetworkImage(
-              imageUrl: images[index],
+              imageUrl: widget.images[index],
               errorWidget: (context, url, error) {
-                return Image.asset(kBrandLogo,fit: BoxFit.fill,);
+                return Image.asset(
+                  kBrandLogo,
+                  fit: BoxFit.fill,
+                );
               },
               progressIndicatorBuilder: (context, url, progress) {
                 return const Center(
@@ -61,25 +68,24 @@ class ImagesPreviewerRow extends StatelessWidget {
       },
       pagination: SwiperCustomPagination(
         builder: (context, config) {
-          
           return Column(
             children: [
               SizedBox(
-                height: MediaQuery.of(context).size.height * 0.31,
+                height: MediaQuery.of(context).size.height * 0.325,
               ),
               SizedBox(
                 width: double.infinity,
                 height: MediaQuery.of(context).size.height * 0.1,
                 child: Center(
                   child: ListView.builder(
-                    itemCount: images.length,
+                    itemCount: widget.images.length,
                     shrinkWrap: true,
                     scrollDirection: Axis.horizontal,
                     itemBuilder: (context, index) {
                       return InkWell(
                         onTap: () {
-                          swiperController.move(index);
-                          
+
+                          widget.swiperController.move(index);
                         },
                         child: Container(
                           margin: const EdgeInsets.all(14),
@@ -88,21 +94,20 @@ class ImagesPreviewerRow extends StatelessWidget {
                               color: config.activeIndex != index
                                   ? Colors.transparent
                                   : kDefaultActiveChipColor,
-                              width: 1,
+                              width: 3,
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(16),
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
                             clipBehavior: Clip.antiAlias,
                             child: CachedNetworkImage(
-                              imageUrl: images[index],
+                              imageUrl: widget.images[index],
                               errorWidget: (context, url, error) {
-                                                return Image.asset(
+                                return Image.asset(
                                   kBrandLogo,
                                   fit: BoxFit.fill,
                                 );
-
                               },
                               progressIndicatorBuilder:
                                   (context, url, progress) {
@@ -127,8 +132,8 @@ class ImagesPreviewerRow extends StatelessWidget {
           );
         },
       ),
-      indicatorLayout: PageIndicatorLayout.SCALE,
-      itemCount: images.length,
+      curve: Curves.linear,
+      itemCount: widget.images.length,
       loop: false,
     );
   }
