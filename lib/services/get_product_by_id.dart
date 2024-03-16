@@ -11,7 +11,6 @@ class GetProductById {
   static const _endpoints = 'product/';
   static Future<Product> getProductById(int id) async {
     try {
-      List<int> forbiddenIDs = [];
       final response = await _dio.get('$kBaseURL$_endpoints$id');
       Product product = Product();
       product.id = response.data['data']['id'];
@@ -20,15 +19,13 @@ class GetProductById {
       List<ProductVariation> variations = [];
       for (var item in response.data['data']['variations']) {
         //! Ignore if the product is not in stock
-        if (item['inStock'] == false) {
-          forbiddenIDs.add(item['id']);
-          continue;
-        }
+
         List<String> images = [];
         ProductVariation variation = ProductVariation(
           id: item['id'],
           price: item['price'],
           images: images,
+          inStock: item['inStock'],
         );
         for (var image in item['ProductVarientImages']) {
           variation.images!.add(image['image_path']);
@@ -48,17 +45,13 @@ class GetProductById {
           if (property['property'] == 'Size') {
             product.sizes = {};
             for (var size in property['values']) {
-              if (forbiddenIDs.any((element) => element == size['id'])) {
-                continue;
-              }
+
               product.sizes![size['id']] = size['value'].trim();
             }
           } else if (property['property'] == 'Materials') {
             product.materials = {};
             for (var material in property['values']) {
-              if (forbiddenIDs.any((element) => element == material['id'])) {
-                continue;
-              }
+
               product.materials![material['id']] = material['value'].trim();
             }
           } else if (property['property'] == 'Color') {
@@ -71,9 +64,7 @@ class GetProductById {
             ];
             for (var color in property['values']) {
               try {
-                if (forbiddenIDs.any((element) => element == color['id'])||color == defaultColor) {
-                  continue;
-                }
+
                 if (product.colors!
                     .containsKey(HexColor.fromHex(color['value']))) {
                   product.colors![HexColor.fromHex(color['value'])]!
@@ -94,9 +85,7 @@ class GetProductById {
           } else {
             product.colorImages = {};
             for (var color in property['values']) {
-              if (forbiddenIDs.any((element) => element == color['id'])) {
-                continue;
-              }
+
               if (product.colorImages!.containsKey(color['value'])) {
                 product.colors![color['value']]!.add(color['id']);
               } else {
@@ -111,25 +100,7 @@ class GetProductById {
         name: response.data['data']['brandName'],
         logo: response.data['data']['brandImage'],
       );
-      for (var id in forbiddenIDs) {
-        product.variations!.removeWhere((element) => element.id == id);
-        if (product.colors != null) {
-          product.colors!.forEach((key, value) {
-            value.removeWhere((element) => element == id);
-          });
-        }
-        if (product.colorImages != null) {
-          product.colorImages!.forEach((key, value) {
-            value.removeWhere((element) => element == id);
-          });
-        }
-        if (product.sizes != null) {
-          product.sizes!.remove(id);
-        }
-        if (product.materials != null) {
-          product.materials!.remove(id);
-        }
-      }
+      
       return product;
     } on DioException catch (e) {
       throw e.message!;

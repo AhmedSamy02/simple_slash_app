@@ -29,6 +29,7 @@ class _ListOfTagsState extends State<ListOfTags> {
   @override
   Widget build(BuildContext context) {
     return ChipList(
+      
       extraOnToggle: (index) {
         int id = widget.tags.values.elementAt(index);
 

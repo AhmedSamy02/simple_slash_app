@@ -11,7 +11,7 @@ import 'package:simple_slash_app/components/color_image_list_view.dart';
 import 'package:simple_slash_app/components/description_bar.dart';
 import 'package:simple_slash_app/components/image_preveiwer_row.dart';
 import 'package:simple_slash_app/components/list_of_tags.dart';
-import 'package:simple_slash_app/components/product_name_and_price.dart';
+import 'package:simple_slash_app/components/product_name_widget.dart';
 import 'package:simple_slash_app/components/select_text_header.dart';
 import 'package:simple_slash_app/constants.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
@@ -21,6 +21,7 @@ import 'package:simple_slash_app/cubits/update_details_cubit/update_details_stat
 import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_cubit.dart';
 import 'package:simple_slash_app/cubits/update_price_details_cubit/update_price_details_states.dart';
 import 'package:simple_slash_app/models/product.dart';
+import 'package:simple_slash_app/models/product_variation.dart';
 import 'package:simple_slash_app/services/get_product_by_id.dart';
 
 class ProductDetailsScreen extends StatefulWidget {
@@ -40,6 +41,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
     _id = ModalRoute.of(context)!.settings.arguments as int;
   }
 
+  ProductVariation? _currentVariation;
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -95,12 +97,14 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                     BlocBuilder<ProductDetailsCubit, ProductDetailsStates>(
                       builder: (context, state) {
                         if (state is ProductDetailsInitialState) {
+                          _currentVariation = product.variations![0];
                           return ImagesPreviewerRow(
                               swiperController: _swiperController,
-                              images: product.variations![0].images!);
+                              images: _currentVariation!.images!);
                         } else if (state is ProductDetailsSuccessState) {
                           for (var variation in product.variations!) {
                             if (variation.id == state.id) {
+                              _currentVariation = variation;
                               return ImagesPreviewerRow(
                                   swiperController: _swiperController,
                                   images: variation.images!);
@@ -114,7 +118,48 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                       padding: const EdgeInsets.all(8.0),
                       child: Row(
                         children: [
-                          ProductNameAndPrice(product: product),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ProductNameWidget(productName: product.name!),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: BlocBuilder<UpdatePriceDetailsCubit,
+                                    UpdatePriceDetailsState>(
+                                  builder: (context, state) {
+                                    if (state
+                                        is UpdatePriceDetailsInitialState) {
+                                      return Text(
+                                        'EGP ${product.variations![0].price}',
+                                        style: GoogleFonts.roboto(
+                                          fontSize: 17.0,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    } else if (state
+                                        is UpdatePriceDetailsSuccessState) {
+                                      for (var variation
+                                          in product.variations!) {
+                                        if (variation.id == state.id) {
+                                          _currentVariation = variation;
+                                          logger.i(
+                                              'Current Variation: ${_currentVariation!.id}');
+                                          return Text(
+                                            'EGP ${variation.price}',
+                                            style: GoogleFonts.roboto(
+                                              fontSize: 17.0,
+                                              color: Colors.white,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                    return const SizedBox();
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                           const Spacer(),
                           BrandDetails(product: product),
                         ],

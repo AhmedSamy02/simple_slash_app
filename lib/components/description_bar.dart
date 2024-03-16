@@ -1,4 +1,5 @@
 import 'package:accordion/accordion.dart';
+import 'package:accordion/controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -14,6 +15,8 @@ class DescriptionBar extends StatelessWidget {
       disableScrolling: true,
       scaleWhenAnimating: false,
       headerBorderRadius: 20,
+      scrollIntoViewOfItems: ScrollIntoViewOfItems.slow,
+      
       contentBorderRadius: 20,
       children: [
         AccordionSection(

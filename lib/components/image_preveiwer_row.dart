@@ -91,7 +91,7 @@ class _ImagesPreviewerRowState extends State<ImagesPreviewerRow> {
           ),
           Expanded(
               child: ListView.builder(
-                shrinkWrap: true,
+                  shrinkWrap: true,
                   scrollDirection: Axis.horizontal,
                   itemBuilder: (context, index) {
                     return InkWell(
@@ -101,17 +101,12 @@ class _ImagesPreviewerRowState extends State<ImagesPreviewerRow> {
                           duration: Durations.extralong1,
                           curve: Easing.legacy,
                         );
-                        // _lowerPageController.animateTo(
-                        //   index.toDouble(),
-                        //   duration: Durations.extralong1,
-                        //   curve: Easing.legacy,
-                        // );
                       },
                       child: AnimatedBuilder(
                         animation: _upperPageController,
                         builder: (context, child) {
                           double opacity = 0;
-                          
+
                           if (_upperPageController.position.haveDimensions) {
                             opacity =
                                 1 - (_upperPageController.page! - index).abs();
@@ -146,7 +141,7 @@ class _ImagesPreviewerRowState extends State<ImagesPreviewerRow> {
                                     ),
                                   );
                                 },
-                                fit: BoxFit.fill,
+                                fit: BoxFit.cover,
                                 width: 45,
                               ),
                             ),
