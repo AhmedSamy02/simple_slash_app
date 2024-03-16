@@ -13,6 +13,8 @@ class DescriptionBar extends StatelessWidget {
     return Accordion(
       disableScrolling: true,
       scaleWhenAnimating: false,
+      headerBorderRadius: 20,
+      contentBorderRadius: 20,
       children: [
         AccordionSection(
           header: Text(

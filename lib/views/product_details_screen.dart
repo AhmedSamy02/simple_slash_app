@@ -3,6 +3,7 @@ import 'package:card_swiper/card_swiper.dart';
 import 'package:dots_indicator/dots_indicator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_glow/flutter_glow.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_slash_app/components/brand_details.dart';
@@ -12,6 +13,7 @@ import 'package:simple_slash_app/components/image_preveiwer_row.dart';
 import 'package:simple_slash_app/components/list_of_tags.dart';
 import 'package:simple_slash_app/components/product_name_and_price.dart';
 import 'package:simple_slash_app/components/select_text_header.dart';
+import 'package:simple_slash_app/constants.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_cubit.dart';
 import 'package:simple_slash_app/cubits/product_details/product_details_states.dart';
 import 'package:simple_slash_app/cubits/update_details_cubit/update_details_cubit.dart';
@@ -133,7 +135,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         } else if (state is UpdateDetailsSuccessState) {
                           proprty =
                               product.getSizesAndMaterialFromColor(state.color);
-                              variationIds = product.colors![state.color]!;
+                          variationIds = product.colors![state.color]!;
                         }
                         return Column(
                           children: [
@@ -211,6 +213,26 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
                         : DescriptionBar(
                             text: product.description!,
                           ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16.0),
+                      child: GlowButton(
+                        width: MediaQuery.of(context).size.width - 30,
+                        height: 45,
+                        child: Text(
+                          'Add To Cart',
+                          style: GoogleFonts.roboto(
+                            fontSize: 16.0,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        onPressed: () {},
+                        color: kDefaultActiveChipColor,
+                      ),
+                    ),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.05,
+                    )
                   ],
                 ),
               );
